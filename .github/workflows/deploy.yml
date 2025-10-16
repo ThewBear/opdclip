@@ -50,7 +50,7 @@ jobs:
       - name: Deploy to Netlify
         id: netlify-deploy
         run: |
-          OUTPUT=$(npm run deploy -- --json)
+          OUTPUT=$(npm run deploy -- --json 2>&1 | sed -n '/^{/,/^}/p')
           echo "$OUTPUT"
           DEPLOY_URL=$(echo "$OUTPUT" | jq -r '.deploy_url // empty')
           echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
@@ -114,7 +114,7 @@ jobs:
       - name: Deploy to Netlify
         id: netlify-deploy
         run: |
-          OUTPUT=$(npm run publish -- --json)
+          OUTPUT=$(npm run publish -- --json 2>&1 | sed -n '/^{/,/^}/p')
           echo "$OUTPUT"
           DEPLOY_URL=$(echo "$OUTPUT" | jq -r '.deploy_url // empty')
           echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
