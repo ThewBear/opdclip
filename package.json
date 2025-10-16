@@ -8,8 +8,6 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "deploy": "netlify deploy --dir=./dist",
-    "publish": "netlify deploy --prod --dir=./dist",
     "format": "prettier --write \"**/*.{astro,ts,js,mjs,json,css}\"",
     "format:check": "prettier --check \"**/*.{astro,ts,js,mjs,json,css}\""
   },

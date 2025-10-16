@@ -1,21 +1,23 @@
-name: Build and Deploy to Netlify
+name: Deploy to GitHub Pages
 
 on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
-  deploy-preview:
-    if: github.event_name == 'pull_request'
+  build:
     runs-on: ubuntu-latest
-    permissions:
-      deployments: write
-      contents: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -32,108 +34,18 @@ jobs:
       - name: Build Astro site
         run: npm run build
 
-      - name: Create GitHub Deployment
-        id: deployment
-        uses: actions/github-script@v8
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          script: |
-            const deployment = await github.rest.repos.createDeployment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: context.sha,
-              environment: 'preview',
-              required_contexts: [],
-              auto_merge: false
-            });
-            core.setOutput('deployment_id', deployment.data.id);
-            return deployment.data.id;
+          path: ./dist
 
-      - name: Deploy to Netlify
-        id: netlify-deploy
-        run: |
-          OUTPUT=$(npm run deploy -- --json 2>&1 | sed -n '/^{/,/^}/p')
-          echo "$OUTPUT"
-          DEPLOY_URL=$(echo "$OUTPUT" | jq -r '.deploy_url // empty')
-          echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-
-      - name: Update GitHub Deployment Status
-        if: always()
-        uses: actions/github-script@v8
-        with:
-          script: |
-            const deployUrl = '${{ steps.netlify-deploy.outputs.deploy_url }}' || '';
-            await github.rest.repos.createDeploymentStatus({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              deployment_id: ${{ steps.deployment.outputs.deployment_id }},
-              state: '${{ job.status }}' === 'success' ? 'success' : 'failure',
-              environment_url: deployUrl,
-              log_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
-            });
-
-  deploy-production:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  deploy:
+    needs: build
     runs-on: ubuntu-latest
-    permissions:
-      deployments: write
-      contents: read
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: "22"
-          cache: "npm"
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build Astro site
-        run: npm run build
-
-      - name: Create GitHub Deployment
+      - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/github-script@v8
-        with:
-          script: |
-            const deployment = await github.rest.repos.createDeployment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: context.sha,
-              environment: 'production',
-              required_contexts: [],
-              auto_merge: false
-            });
-            core.setOutput('deployment_id', deployment.data.id);
-            return deployment.data.id;
-
-      - name: Deploy to Netlify
-        id: netlify-deploy
-        run: |
-          OUTPUT=$(npm run publish -- --json 2>&1 | sed -n '/^{/,/^}/p')
-          echo "$OUTPUT"
-          DEPLOY_URL=$(echo "$OUTPUT" | jq -r '.deploy_url // empty')
-          echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-
-      - name: Update GitHub Deployment Status
-        if: always()
-        uses: actions/github-script@v8
-        with:
-          script: |
-            const deployUrl = '${{ steps.netlify-deploy.outputs.deploy_url }}' || '';
-            await github.rest.repos.createDeploymentStatus({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              deployment_id: ${{ steps.deployment.outputs.deployment_id }},
-              state: '${{ job.status }}' === 'success' ? 'success' : 'failure',
-              environment_url: deployUrl,
-              log_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
-            });
+        uses: actions/deploy-pages@v4
