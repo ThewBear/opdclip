@@ -1,0 +1,159 @@
+---
+import Layout from "../layouts/Layout.astro";
+import BreakDaySnippet from "../components/BreakDaySnippet.astro";
+
+interface Snippet {
+  category: string;
+  text: string;
+}
+
+const snippets: Snippet[] = [
+  { category: "สุขภาพทั่วไป", text: "สุขภาพแข็งแรง" },
+  { category: "สุขภาพทั่วไป", text: "มาตรวจจริง" },
+  { category: "สุขภาพทั่วไป", text: "มีสติสัมปชัญญะสมบูรณ์" },
+  { category: "สุขภาพทั่วไป", text: "มารับยาโรคประจำตัวตามนัด" },
+  { category: "การตรวจ", text: "เอกซเรย์ปอดปกติ" },
+  { category: "การตรวจ", text: "ตรวจไม่พบการตั้งครรภ์" },
+  {
+    category: "การตรวจ",
+    text: "ตรวจไม่พบสารเสพติด (metamphetamine) ในปัสสาวะ",
+  },
+  { category: "การตรวจ", text: "ตรวจไม่พบการติดเชื้อซิฟิลิส" },
+  { category: "การตรวจ", text: "ตรวจไม่พบการติดเอชไอวี" },
+  { category: "การตรวจ", text: "ตรวจตาบอดสีผลปกติ" },
+  { category: "การวินิจฉัย", text: "ติดเชื้อระบบทางเดินหายใจส่วนบน" },
+  { category: "การวินิจฉัย", text: "โรคไข้หวัดใหญ่" },
+  { category: "การวินิจฉัย", text: "โรคไข้หวัดใหญ่สายพันธุ์ A" },
+  { category: "การวินิจฉัย", text: "โรคไข้หวัดใหญ่สายพันธุ์ B" },
+  { category: "การวินิจฉัย", text: "โรคกรดไหลย้อน" },
+  { category: "การวินิจฉัย", text: "โรคกระเพาะ" },
+  {
+    category: "การวินิจฉัย",
+    text: "โรคกระเพาะอาหารและลำไส้อักเสบเฉียบพลัน",
+  },
+  { category: "ใบส่งตัว", text: "FIT test positive" },
+  { category: "ใบส่งตัว", text: "Hepatitis B" },
+  { category: "โรคประจำตัว", text: "โรคความดันโลหิตสูง" },
+  { category: "โรคประจำตัว", text: "โรคเบาหวาน" },
+  { category: "โรคประจำตัว", text: "โรคไขมันในเลือดสูง" },
+  { category: "โรคประจำตัว", text: "โรคหอบหืด" },
+  { category: "โรคประจำตัว", text: "โรคไตเรื้อรัง" },
+  { category: "โรคประจำตัว", text: "โรคไทรอยด์" },
+];
+
+const breakDays = [1, 2, 3, 4, 5, 6, 7, 10, 14];
+
+// Group snippets by category
+const groupedSnippets: Record<string, Snippet[]> = {};
+snippets.forEach((snippet) => {
+  if (!groupedSnippets[snippet.category]) {
+    groupedSnippets[snippet.category] = [];
+  }
+  groupedSnippets[snippet.category].push(snippet);
+});
+---
+
+<Layout>
+  <div
+    class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4"
+  >
+    <div class="max-w-6xl mx-auto">
+      <!-- Header -->
+      <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <h1 class="text-3xl font-bold text-indigo-900 mb-2">
+          📋 OPD Clipboard Tool
+        </h1>
+        <p class="text-gray-600">
+          คลิกเพื่อคัดลอกข้อความที่ใช้บ่อย - Click to copy frequently used text
+        </p>
+      </div>
+
+      <!-- Snippets Grid -->
+      <div class="space-y-6">
+        {
+          Object.entries(groupedSnippets).map(([category, items]) => (
+            <div class="bg-white rounded-lg shadow-lg p-6">
+              <h2 class="text-xl font-semibold text-indigo-800 mb-4">
+                {category}
+              </h2>
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {items.map((snippet) => (
+                  <button
+                    class="snippet-btn text-left p-4 bg-indigo-50 hover:bg-indigo-100 rounded-lg border-2 border-indigo-200 hover:border-indigo-400 transition-all duration-200 hover:shadow-md active:scale-95"
+                    data-text={snippet.text}
+                  >
+                    <span class="text-gray-800 font-medium">
+                      {snippet.text}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))
+        }
+
+        <!-- Break Days Section -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+          <h2 class="text-xl font-semibold text-indigo-800 mb-4">การหยุดพัก</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {breakDays.map((days) => <BreakDaySnippet days={days} />)}
+          </div>
+        </div>
+      </div>
+
+      <!-- Toast Notification -->
+      <div
+        id="toast"
+        class="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300"
+      >
+        ✓ คัดลอกแล้ว!
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Copy to clipboard functionality
+    document.querySelectorAll(".snippet-btn").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const text = button.getAttribute("data-text");
+        if (text) {
+          try {
+            await navigator.clipboard.writeText(text);
+
+            // Change button to light green
+            const originalClasses = button.className;
+            button.classList.remove(
+              "bg-indigo-50",
+              "hover:bg-indigo-100",
+              "border-indigo-200",
+              "hover:border-indigo-400",
+            );
+            button.classList.add("bg-green-100", "border-green-400");
+
+            showToast();
+
+            // Revert back to original style after 500ms
+            setTimeout(() => {
+              button.className = originalClasses;
+            }, 500);
+          } catch (err) {
+            console.error("Failed to copy:", err);
+          }
+        }
+      });
+    });
+
+    function showToast() {
+      const toast = document.getElementById("toast");
+      if (toast) {
+        toast.classList.remove("translate-y-20", "opacity-0");
+        toast.classList.add("translate-y-0", "opacity-100");
+
+        setTimeout(() => {
+          toast.classList.remove("translate-y-0", "opacity-100");
+          toast.classList.add("translate-y-20", "opacity-0");
+        }, 2000);
+      }
+    }
+  </script>
+</Layout>
