@@ -1,72 +1,72 @@
 ---
 interface Props {
-    days: number;
+  days: number;
 }
 
 const { days } = Astro.props;
 ---
 
 <button
-    class="snippet-btn text-left p-4 bg-indigo-50 hover:bg-indigo-100 rounded-lg border-2 border-indigo-200 hover:border-indigo-400 transition-all duration-200 hover:shadow-md active:scale-95"
-    data-days={days}
+  class="snippet-btn text-left p-4 bg-indigo-50 hover:bg-indigo-100 rounded-lg border-2 border-indigo-200 hover:border-indigo-400 transition-all duration-200 hover:shadow-md active:scale-95"
+  data-days={days}
 >
-    <span class="text-gray-800 font-medium">
-        เห็นควรหยุดพัก <span class="text-red-600 font-bold">{days}</span> วัน ตั้งแต่วันที่
-        <span class="date-text">กำลังโหลด...</span>
-    </span>
+  <span class="text-gray-800 font-medium">
+    เห็นควรหยุดพัก <span class="text-red-600 font-bold">{days}</span> วัน ตั้งแต่วันที่
+    <span class="date-text">กำลังโหลด...</span>
+  </span>
 </button>
 
 <script>
-    // Thai month names
-    const thaiMonths = [
-        "มกราคม",
-        "กุมภาพันธ์",
-        "มีนาคม",
-        "เมษายน",
-        "พฤษภาคม",
-        "มิถุนายน",
-        "กรกฎาคม",
-        "สิงหาคม",
-        "กันยายน",
-        "ตุลาคม",
-        "พฤศจิกายน",
-        "ธันวาคม",
-    ];
+  // Thai month names
+  const thaiMonths = [
+    "มกราคม",
+    "กุมภาพันธ์",
+    "มีนาคม",
+    "เมษายน",
+    "พฤษภาคม",
+    "มิถุนายน",
+    "กรกฎาคม",
+    "สิงหาคม",
+    "กันยายน",
+    "ตุลาคม",
+    "พฤศจิกายน",
+    "ธันวาคม",
+  ];
 
-    // Format date in full Thai format (e.g., "16 ตุลาคม พ.ศ. 2568")
-    function formatDate(date: Date): string {
-        const day = date.getDate();
-        const month = thaiMonths[date.getMonth()];
-        const year = date.getFullYear() + 543; // Convert to Buddhist Era
-        return `${day} ${month} ${year}`;
-    }
+  // Format date in full Thai format (e.g., "16 ตุลาคม พ.ศ. 2568")
+  function formatDate(date: Date): string {
+    const day = date.getDate();
+    const month = thaiMonths[date.getMonth()];
+    const year = date.getFullYear() + 543; // Convert to Buddhist Era
+    return `${day} ${month} ${year}`;
+  }
 
-    // Initialize dates for all buttons
-    function initializeDates() {
-        const buttons = document.querySelectorAll(".snippet-btn");
+  // Initialize dates for all buttons
+  function initializeDates() {
+    const buttons = document.querySelectorAll(".snippet-btn");
 
-        buttons.forEach((button) => {
-            const days = parseInt(button.getAttribute("data-days") || "0");
-            const dateTextEl = button.querySelector(".date-text");
+    buttons.forEach((button) => {
+      const days = parseInt(button.getAttribute("data-days") || "0");
+      const dateTextEl = button.querySelector(".date-text");
 
-            if (dateTextEl && days > 0) {
-                // Calculate dates on client side
-                const today = new Date();
-                const startDate = new Date(today);
-                const endDate = new Date(today);
-                endDate.setDate(endDate.getDate() + days - 1);
+      if (dateTextEl && days > 0) {
+        // Calculate dates on client side
+        const today = new Date();
+        const startDate = new Date(today);
+        const endDate = new Date(today);
+        endDate.setDate(endDate.getDate() + days - 1);
 
-                const startDateStr = formatDate(startDate);
-                const endDateStr = formatDate(endDate);
-                const plainText = `เห็นควรหยุดพัก ${days} วัน ตั้งแต่วันที่ ${startDateStr} ถึง ${endDateStr}`;
+        const startDateStr = formatDate(startDate);
+        const endDateStr = formatDate(endDate);
+        const plainText = `เห็นควรหยุดพัก ${days} วัน ตั้งแต่วันที่ ${startDateStr} ถึง ${endDateStr}`;
 
-                // Update button text and data attribute
-                dateTextEl.textContent = `${startDateStr} ถึง ${endDateStr}`;
-                button.setAttribute("data-text", plainText);
-            }
-        });
-    }
+        // Update button text and data attribute
+        dateTextEl.textContent = `${startDateStr} ถึง ${endDateStr}`;
+        button.setAttribute("data-text", plainText);
+      }
+    });
+  }
 
-    // Initialize on page load
-    initializeDates();
+  // Initialize on page load
+  initializeDates();
 </script>
