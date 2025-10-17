@@ -114,14 +114,26 @@ snippets.forEach((snippet) => {
   <script>
     // Copy to clipboard functionality
     document.querySelectorAll(".snippet-btn").forEach((button) => {
+      let revertTimeout: ReturnType<typeof setTimeout> | null = null;
+      let storedClasses: string | null = null;
+
       button.addEventListener("click", async () => {
         const text = button.getAttribute("data-text");
         if (text) {
           try {
             await navigator.clipboard.writeText(text);
 
+            // Store original classes on first click
+            if (!storedClasses) {
+              storedClasses = button.className;
+            }
+
+            // Clear any pending revert timeout
+            if (revertTimeout !== null) {
+              clearTimeout(revertTimeout);
+            }
+
             // Change button to light green
-            const originalClasses = button.className;
             button.classList.remove(
               "bg-indigo-50",
               "hover:bg-indigo-100",
@@ -133,8 +145,9 @@ snippets.forEach((snippet) => {
             showToast();
 
             // Revert back to original style after 500ms
-            setTimeout(() => {
-              button.className = originalClasses;
+            revertTimeout = setTimeout(() => {
+              button.className = storedClasses!;
+              revertTimeout = null;
             }, 500);
           } catch (err) {
             console.error("Failed to copy:", err);
